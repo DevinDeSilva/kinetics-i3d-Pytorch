@@ -305,7 +305,7 @@ class I3D(nn.Module):
         )
         
         self.spatial_squeeze = spatial_squeeze
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x):
         #features = self.features(x)
@@ -332,7 +332,7 @@ class I3D(nn.Module):
         averaged_logits = torch.mean(logits, 2)
         averaged_features = torch.mean(features_1024, 2)
         
-        predictions = self.softmax(averaged_logits,dim=-1)
+        predictions = self.softmax(averaged_logits)
 
         return predictions, averaged_logits, averaged_features
         #return predictions, averaged_logits
