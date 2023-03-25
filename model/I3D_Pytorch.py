@@ -308,18 +308,31 @@ class I3D(nn.Module):
         self.softmax = nn.Softmax()
 
     def forward(self, x):
-        features = self.features(x)
-        logits = self.last_layer(features)
+        #features = self.features(x)
+        #logits = self.last_layer(features)
+        features_1024 = None
+
+        def get_features(module_, input_, output_):
+          nonlocal features_1024
+          features_1024 = output_
+        
+        ahook = self.features[16].register_forward_hook(get_features)
+
+        logits = self.features(x)
+
+        ahook.remove()
+        #print(features_1024.shape)
 
         if self.spatial_squeeze:
-            features = features.squeeze(3)
-            features = features.squeeze(3)
+            features_1024 = features_1024.squeeze(3)
+            features_1024 = features_1024.squeeze(3)
             logits = logits.squeeze(3)
             logits = logits.squeeze(3)
 
         averaged_logits = torch.mean(logits, 2)
-        averaged_features = torch.mean(features, 2)
+        averaged_features = torch.mean(features_1024, 2)
         
         predictions = self.softmax(averaged_logits)
 
-        return predictions, averaged_logits, average_features
+        return predictions, averaged_logits, averaged_features
+        #return predictions, averaged_logits
