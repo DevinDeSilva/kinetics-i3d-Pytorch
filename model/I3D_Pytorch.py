@@ -301,8 +301,8 @@ class I3D(nn.Module):
             Mixed_5c(), # (1024, 8, 7, 7)
             nn.AvgPool3d(kernel_size=(2, 7, 7), stride=1),# (1024, 8, 1, 1)
             nn.Dropout3d(dropout_drop_prob),
+            nn.Conv3d(1024, num_classes, kernel_size=1, stride=1, bias=True),# (400, 8, 1, 1)
         )
-        self.last_layer = nn.Conv3d(1024, num_classes, kernel_size=1, stride=1, bias=True),# (400, 8, 1, 1)
         
         self.spatial_squeeze = spatial_squeeze
         self.softmax = nn.Softmax()
@@ -332,7 +332,7 @@ class I3D(nn.Module):
         averaged_logits = torch.mean(logits, 2)
         averaged_features = torch.mean(features_1024, 2)
         
-        predictions = self.softmax(averaged_logits)
+        predictions = self.softmax(averaged_logits,dim=-1)
 
         return predictions, averaged_logits, averaged_features
         #return predictions, averaged_logits
