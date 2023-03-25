@@ -301,19 +301,25 @@ class I3D(nn.Module):
             Mixed_5c(), # (1024, 8, 7, 7)
             nn.AvgPool3d(kernel_size=(2, 7, 7), stride=1),# (1024, 8, 1, 1)
             nn.Dropout3d(dropout_drop_prob),
-            nn.Conv3d(1024, num_classes, kernel_size=1, stride=1, bias=True),# (400, 8, 1, 1)
         )
+        self.last_layer = nn.Conv3d(1024, num_classes, kernel_size=1, stride=1, bias=True),# (400, 8, 1, 1)
+        
         self.spatial_squeeze = spatial_squeeze
         self.softmax = nn.Softmax()
 
     def forward(self, x):
-        logits = self.features(x)
+        features = self.features(x)
+        logits = self.last_layer(features)
 
         if self.spatial_squeeze:
+            features = features.squeeze(3)
+            features = features.squeeze(3)
             logits = logits.squeeze(3)
             logits = logits.squeeze(3)
 
         averaged_logits = torch.mean(logits, 2)
+        averaged_features = torch.mean(features, 2)
+        
         predictions = self.softmax(averaged_logits)
 
-        return predictions, averaged_logits
+        return predictions, averaged_logits, average_features
